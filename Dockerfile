@@ -7,13 +7,7 @@ RUN apt-get update && \
 RUN wget https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu1804-x86_64-100.3.0.deb -P /tmp && \
     dpkg -i /tmp/mongodb-database-tools-ubuntu1804-x86_64-100.3.0.deb
 
-RUN  apt-get install -y mercurial && \
-  apt-get install -y python-pip
-
-RUN apt-get install wget && \
-  wget https://bitbucket.org/dbenamy/devcron/get/5d2a470.tar.gz && \
-  pip install 5d2a470.tar.gz && \
-  rm -rf 5d2a470.tar.gz
+RUN apt-get install -y python-pip && pip install devcron
 
 RUN mkdir /cron && \
     echo "* * * * * /cron/sample.sh" > /cron/crontab && \
