@@ -20,9 +20,9 @@ BACKUP_FILENAME="$DB_NAME-$CURRENT_DATE.tar.gz"
 
 # Create the backup
 if [ -z "$DB_PASS" ]; then
-  mongodump -h "$DB_HOST" -o "$BACKUP_PATH" --readPreference=secondary || send_notification "DB Backup failed on $PROJECT_ID/$DB_NAME"
+  mongodump -h "$DB_HOST" -o "$BACKUP_PATH" || send_notification "DB Backup failed on $PROJECT_ID/$DB_NAME"
 else
-  mongodump -h "$DB_HOST" -u "$DB_USER" -p "$DB_PASS" -o "$BACKUP_PATH" --authenticationDatabase="$AUTHDB" --readPreference=secondary || send_notification "DB Backup failed on $PROJECT_ID/$DB_NAME"
+  mongodump -h "$DB_HOST" -u "$DB_USER" -p "$DB_PASS" -o "$BACKUP_PATH" --authenticationDatabase="$AUTHDB" || send_notification "DB Backup failed on $PROJECT_ID/$DB_NAME"
 fi
 cd $BACKUP_PATH || exit
 
