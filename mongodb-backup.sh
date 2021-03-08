@@ -11,7 +11,7 @@ BUCKET_NAME="$BUCKET"
 AUTHDB="$AUTHDB"
 
 # Path in which to create the backup (will get cleaned later)
-BACKUP_PATH="/mnt/data/dump/"
+BACKUP_PATH="/tmp/dump/"
 
 CURRENT_DATE=$(date +"%Y%m%d-%H%M")
 
