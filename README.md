@@ -1,36 +1,70 @@
-# Mongodb cron backup to Google Cloud Storage (GCE)
+istepanov/mongodump
+===================
 
-## How To Use
-```
-docker run -d -e PROJECT_ID=unique_id_on_gce -e GS_ID=gs_access_key_id -e GS_SECRET=gs_secret_access_key -e MONGO_HOST=127.0.0.1:27017 -e MONGO_USER=user -e MONGO_PASS=password -e BUCKET=storage-bucket -e CRON_TIME="0 1 * * *" startupjs/mongo-backup:master
-```
+Docker image with `mongodump`, `cron` and AWS CLI to upload backups to AWS S3.
 
-## Environment Variables
+### Environment variables
 
-#### PROJECT_ID - [Demo(3)](https://storage.googleapis.com/cdn.chessboardradio.com/lab/docker-mongodb-backup-gce/get-storage-keys.png)
-The project id on Google Cloud, need be the **default**.
+| Env var               | Description | Default                 |
+|-----------------------|-------------|-------------------------|
+| `MONGO_URI`             | Mongo URI.  | `mongodb://mongo:27017` |
+| `CRON_SCHEDULE`         | Cron schedule. Leave empty to disable cron job. | `''` |
+| `TARGET_FOLDER`         | Local folder (inside the container) to save backups. Mount volume to this folder. Set it to null (empty string) to disable local backups (this will make `TARGET_S3_FOLDER` a required parameter). | `'/backup'` |
+| `TARGET_S3_FOLDER`      | Folder to upload backups. Leave it empty to disable upload to S3. | `''` |
+| `AWS_ACCESS_KEY_ID`     | AWS Access Key ID. Leave empty if you want to use AWS IAM Role instead. | `''` |
+| `AWS_SECRET_ACCESS_KEY` | AWS Access Key ID. Leave empty if you want to use AWS IAM Role instead. | `''` |
 
-#### GS_ID - [Demo(4)](https://storage.googleapis.com/cdn.chessboardradio.com/lab/docker-mongodb-backup-gce/get-storage-keys.png)
-The **Access Key** of Interoperability session.
+### Examples
 
-#### GS_SECRET - [Demo(4)](https://storage.googleapis.com/cdn.chessboardradio.com/lab/docker-mongodb-backup-gce/get-storage-keys.png)
-The **Secret Key** of Interoperability session.
+Run container with cron job (once a day at 1am), save backup to `/path/to/target/folder`, upload backups to AWS S3 folder:
 
-#### BUCKET
-The bucket name, need create the bucket on Google Cloud Console before.
+    docker run -d \
+      -v /path/to/target/folder:/backup \
+      -e 'MONGO_URI=mongodb://mongo:27017' \
+      -e 'CRON_SCHEDULE=0 1 * * *' \
+      -e 'TARGET_S3_FOLDER=s3://my_bucket/backup/' \
+      -e 'AWS_ACCESS_KEY_ID=my_aws_key' \
+      -e 'AWS_SECRET_ACCESS_KEY=my_aws_secret' \
+      istepanov/mongodump:4.2
 
-#### MONGO_HOST
-The IP or domain of your Mongodb server, with the port (127.0.0.1:27017).
+Same, but runs once, no cron job:
 
-#### MONGO_USER
-If your server need authentication, set the user of current database.
+    docker run -ti \
+      -v /path/to/target/folder:/backup \
+      -e 'MONGO_URI=mongodb://mongo:27017' \
+      -e 'TARGET_S3_FOLDER=s3://my_bucket/backup/' \
+      -e 'AWS_ACCESS_KEY_ID=my_aws_key' \
+      -e 'AWS_SECRET_ACCESS_KEY=my_aws_secret' \
+      istepanov/mongodump:4.2
 
-#### MONGO_PASS
-Like before but for the password.
+Run container with cron job (once a day at 1am), upload backups to AWS S3 folder, do not create local backups:
 
-#### AUTHDB
-If you are using authentication, set the [authentication database](https://docs.mongodb.com/database-tools/mongodump/#std-option-mongodump.--authenticationDatabase)
+    docker run -d \
+      -e 'MONGO_URI=mongodb://mongo:27017' \
+      -e 'CRON_SCHEDULE=0 1 * * *' \
+      -e 'TARGET_FOLDER=' \
+      -e 'TARGET_S3_FOLDER=s3://my_bucket/backup/' \
+      -e 'AWS_ACCESS_KEY_ID=my_aws_key' \
+      -e 'AWS_SECRET_ACCESS_KEY=my_aws_secret' \
+      istepanov/mongodump:4.2
 
-#### CRON_TIME
-The **cron time**, the frequency that will generate a new backup, default is `0 1 * * *` every day at 1am (GTM).
-Here is a good [cron generator](http://crontab-generator.org/).
+Docker Compose example - run container with cron job (once a day at 1am), save backup to `mongo-backup` volume:
+
+    version: '3'
+
+    services:
+      mongo:
+        image: "mongo:4.2"
+
+      mongo-backup:
+        image: "istepanov/mongodump:4.2"
+        volumes:
+          - mongo-backup:/backup
+        environment:
+          MONGO_URI: "mongodb://mongo:27017"
+          CRON_SCHEDULE: "0 1 * * *"
+        depends_on:
+          - mongo
+
+    volumes:
+      mongo-backup:

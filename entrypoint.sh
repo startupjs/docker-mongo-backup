@@ -1,25 +1,38 @@
 #!/bin/bash
-set -m
 
-TIME="$CRON_TIME"
-gs_project_id="$PROJECT_ID"
-gs_access_key_id="$GS_ID"
-gs_secret_access_key="$GS_SECRET"
+set -e
 
-# Create boto config file
-cat <<EOF > /etc/boto.cfg
-[Credentials]
-gs_access_key_id = $gs_access_key_id
-gs_secret_access_key = $gs_secret_access_key
-[Boto]
-https_validate_certificates = True
-[GSUtil]
-content_language = en
-default_api_version = 1
-default_project_id = $gs_project_id
-EOF
+export MONGO_URI=${MONGO_URI:-mongodb://mongo:27017}
+export TARGET_FOLDER=${TARGET_FOLDER-/backup}   # can be set to null
 
-echo "$TIME /mongodb-backup.sh" > /cron/mongo-backup
-devcron.py /cron/mongo-backup
+# Optional env vars:
+# - CRON_SCHEDULE
+# - TARGET_S3_FOLDER
+# - AWS_ACCESS_KEY_ID
+# - AWS_SECRET_ACCESS_KEY
 
-fg
+if [[ "$CRON_SCHEDULE" ]]; then
+    LOGFIFO='/var/log/cron.fifo'
+    if [[ ! -e "$LOGFIFO" ]]; then
+        mkfifo "$LOGFIFO"
+    fi
+    CRON_ENV="MONGO_URI='$MONGO_URI'"
+    if [[ "$TARGET_FOLDER" ]]; then
+        CRON_ENV="$CRON_ENV\nTARGET_FOLDER='$TARGET_FOLDER'"
+    fi
+    if [[ "$TARGET_S3_FOLDER" ]]; then
+        CRON_ENV="$CRON_ENV\nTARGET_S3_FOLDER='$TARGET_S3_FOLDER'"
+    fi
+    if [[ "$AWS_ACCESS_KEY_ID" ]]; then
+        CRON_ENV="$CRON_ENV\nAWS_ACCESS_KEY_ID='$AWS_ACCESS_KEY_ID'"
+    fi
+    if [[ "$AWS_SECRET_ACCESS_KEY" ]]; then
+        CRON_ENV="$CRON_ENV\nAWS_SECRET_ACCESS_KEY='$AWS_SECRET_ACCESS_KEY'"
+    fi
+    echo -e "$CRON_ENV\n$CRON_SCHEDULE /backup.sh > $LOGFIFO 2>&1" | crontab -
+    crontab -l
+    cron
+    tail -f "$LOGFIFO"
+else
+    exec /backup.sh
+fi
