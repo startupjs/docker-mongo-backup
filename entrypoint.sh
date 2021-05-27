@@ -7,7 +7,7 @@ export TARGET_FOLDER=${TARGET_FOLDER-/backup}   # can be set to null
 
 # Optional env vars:
 # - CRON_SCHEDULE
-# - TARGET_S3_FOLDER
+# - TARGET_CONTAINER
 # - AWS_ACCESS_KEY_ID
 # - AWS_SECRET_ACCESS_KEY
 
@@ -20,8 +20,8 @@ if [[ "$CRON_SCHEDULE" ]]; then
     if [[ "$TARGET_FOLDER" ]]; then
         CRON_ENV="$CRON_ENV\nTARGET_FOLDER='$TARGET_FOLDER'"
     fi
-    if [[ "$TARGET_S3_FOLDER" ]]; then
-        CRON_ENV="$CRON_ENV\nTARGET_S3_FOLDER='$TARGET_S3_FOLDER'"
+    if [[ "$TARGET_CONTAINER" ]]; then
+        CRON_ENV="$CRON_ENV\nTARGET_CONTAINER='$TARGET_CONTAINER'"
     fi
     if [[ "$AWS_ACCESS_KEY_ID" ]]; then
         CRON_ENV="$CRON_ENV\nAWS_ACCESS_KEY_ID='$AWS_ACCESS_KEY_ID'"
