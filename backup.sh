@@ -11,8 +11,14 @@ if [[ -z "$TARGET_CONTAINER" ]]; then
     exit 1
 fi
 
-/usr/local/bin/az storage blob upload -f /dev/fd/0 -c ${TARGET_CONTAINER} -n "backup-$DATE.tar.gz" < mongodump --uri "$MONGO_URI" --gzip --archive
+/usr/bin/az login --identity
+
+/usr/bin/mongodump --uri "$MONGO_URI" --gzip --archive=backup-$DATE.tar.gz
+
+/usr/bin/az storage blob upload -f backup-$DATE.tar.gz -c ${TARGET_CONTAINER} -n "backup-$DATE.tar.gz"
 
 echo "Mongo dump uploaded to $TARGET_CONTAINER"
+
+rm backup-$DATE.tar.gz
 
 echo "Job finished: $(date)"
