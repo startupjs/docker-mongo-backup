@@ -13,7 +13,7 @@ if [[ "$CRON_SCHEDULE" ]]; then
     if [[ "$TARGET_CONTAINER" ]]; then
         CRON_ENV="$CRON_ENV\nTARGET_CONTAINER='$TARGET_CONTAINER'"
     fi
-    echo -e "$CRON_ENV\n$CRON_SCHEDULE /backup.sh > $LOGFIFO 2>&1" | crontab -
+    echo -e "$CRON_ENV\n$CRON_SCHEDULE . $HOME/.profile; /backup.sh > $LOGFIFO 2>&1" | crontab -
     crontab -l
     cron
     tail -f "$LOGFIFO"

@@ -2,6 +2,8 @@
 
 set -eo pipefail
 
+source $HOME/.profile
+
 echo "Job started: $(date)"
 
 DATE=$(date +%Y%m%d_%H%M%S)
