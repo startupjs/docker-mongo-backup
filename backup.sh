@@ -1,8 +1,7 @@
 #!/bin/bash
-
 set -eo pipefail
 
-source $HOME/.profile
+#source $HOME/.profile
 
 echo "Job started: $(date)"
 
@@ -13,11 +12,14 @@ if [[ -z "$TARGET_CONTAINER" ]]; then
     exit 1
 fi
 
-/usr/bin/az login --identity
+#/usr/bin/az login --identity 
 
 /usr/bin/mongodump --uri "$MONGO_URI" --gzip --archive=backup-$DATE.tar.gz
 
-/usr/bin/az storage blob upload -f backup-$DATE.tar.gz -c ${TARGET_CONTAINER} -n "backup-$DATE.tar.gz"
+#/usr/bin/az storage blob upload -f backup-$DATE.tar.gz -c ${TARGET_CONTAINER} -n "backup-$DATE.tar.gz"
+
+/usr/bin/azcopy login --identity
+/usr/bin/azcopy cp backup-$DATE.tar.gz https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${TARGET_CONTAINER}/backup-$DATE.tar.gz
 
 echo "Mongo dump uploaded to $TARGET_CONTAINER"
 
