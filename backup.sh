@@ -14,8 +14,8 @@ fi
 
 #/usr/bin/az login --identity 
 
-/usr/bin/mongodump --uri "$MONGO_URI" --gzip --archive=backup-$DATE.tar.gz
-
+/usr/bin/mongodump --uri "$MONGO_URI" -o backup-$DATE
+tar -cvzf backup-$DATE.tar.gz backup-$DATE --remove-files
 #/usr/bin/az storage blob upload -f backup-$DATE.tar.gz -c ${TARGET_CONTAINER} -n "backup-$DATE.tar.gz"
 
 /usr/bin/azcopy login --identity
