@@ -12,17 +12,31 @@ if [[ -z "$TARGET_CONTAINER" ]]; then
     exit 1
 fi
 
-#/usr/bin/az login --identity 
+# MONGO_DATABASE='mydb db2 newdb' overwrite it if required
+if [[ -z "$MONGO_DATABASE" ]]; then
+    echo "MONGO_DATABASE is unset or set to the empty string"
+    MONGO_DATABASE=`mongo $MONGO_URI --quiet --eval "db.getMongo().getDBNames()" | grep '"' | tr -d '",\n' | sed s/"config"//`
+fi
+echo "backing up dbs: ${MONGO_DATABASE}"
 
-/usr/bin/mongodump --uri "$MONGO_URI" -o backup-$DATE
-tar -cvzf backup-$DATE.tar.gz backup-$DATE --remove-files
-#/usr/bin/az storage blob upload -f backup-$DATE.tar.gz -c ${TARGET_CONTAINER} -n "backup-$DATE.tar.gz"
-
+#/usr/bin/az login --identity
 /usr/bin/azcopy login --identity
-/usr/bin/azcopy cp backup-$DATE.tar.gz https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${TARGET_CONTAINER}/backup-$DATE.tar.gz
+
+for DB_NAME in ${MONGO_DATABASE}
+do
+
+echo "backing up ${DB_NAME}"
+
+/usr/bin/mongodump --uri "$MONGO_URI" -d "${DB_NAME}" -o ${DB_NAME}-$DATE --numParallelCollections=1
+tar -cvzf ${DB_NAME}-$DATE.tar.gz ${DB_NAME}-$DATE --remove-files
+#/usr/bin/az storage blob upload -f ${DB_NAME}-$DATE.tar.gz -c ${TARGET_CONTAINER} -n "${DB_NAME}-$DATE.tar.gz"
+
+/usr/bin/azcopy cp ${DB_NAME}-$DATE.tar.gz https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${TARGET_CONTAINER}/${DB_NAME}-$DATE.tar.gz
 
 echo "Mongo dump uploaded to $TARGET_CONTAINER"
 
-rm backup-$DATE.tar.gz
+rm ${DB_NAME}-$DATE.tar.gz
+
+done
 
 echo "Job finished: $(date)"
