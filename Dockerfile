@@ -13,6 +13,7 @@ RUN wget -O azcopy_v10.tar.gz https://aka.ms/downloadazcopy-v10-linux && \
 
 ADD backup.sh /backup.sh
 ADD entrypoint.sh /entrypoint.sh
+ADD mongo-cleanup.js /mongo-cleanup.js
 RUN chmod +x /entrypoint.sh && chmod +x /backup.sh
 
 VOLUME /backup

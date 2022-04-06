@@ -25,6 +25,10 @@ echo "backing up dbs: ${MONGO_DATABASE}"
 for DB_NAME in ${MONGO_DATABASE}
 do
 
+echo "cleaning up ${DB_NAME}"
+
+mongo "$MONGO_HOST/${DB_NAME}" /mongo-cleanup.js
+
 echo "backing up ${DB_NAME}"
 
 /usr/bin/mongodump --uri "$MONGO_URI" -d "${DB_NAME}" -o ${DB_NAME}-$DATE --numParallelCollections=1
