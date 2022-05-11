@@ -27,11 +27,11 @@ do
 
 echo "cleaning up ${DB_NAME}"
 
-mongo "${MONGO_HOST}/${DB_NAME}" /mongo-cleanup.js
+mongo "mongodb://${MONGO_HOST}/${DB_NAME}?readPreference=primary" /mongo-cleanup.js
 
 echo "backing up ${DB_NAME}"
 
-/usr/bin/mongodump --uri "$MONGO_URI" -d "${DB_NAME}" -o ${DB_NAME}-$DATE --numParallelCollections=1
+/usr/bin/mongodump --uri "${MONGO_URI}" -d "${DB_NAME}" -o ${DB_NAME}-$DATE --numParallelCollections=1
 tar -cvzf ${DB_NAME}-$DATE.tar.gz ${DB_NAME}-$DATE --remove-files
 #/usr/bin/az storage blob upload -f ${DB_NAME}-$DATE.tar.gz -c ${TARGET_CONTAINER} -n "${DB_NAME}-$DATE.tar.gz"
 
