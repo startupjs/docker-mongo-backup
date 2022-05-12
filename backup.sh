@@ -27,7 +27,7 @@ do
 
 echo "cleaning up ${DB_NAME}"
 
-mongo "mongodb://${MONGO_HOST}/${DB_NAME}?readPreference=primary" /mongo-cleanup.js
+mongo "mongodb://${MONGO_HOST}/${DB_NAME}?replicaSet=rs1" /mongo-cleanup.js
 
 echo "backing up ${DB_NAME}"
 
