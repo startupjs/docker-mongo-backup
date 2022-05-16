@@ -25,7 +25,7 @@ echo "backing up dbs: ${MONGO_DATABASE}"
 for DB_NAME in ${MONGO_DATABASE}
 do
 
-echo "cleaning up ${DB_NAME}"
+echo "cleaning up mongodb://${MONGO_HOST}/${DB_NAME}?replicaSet=rs1"
 
 mongo "mongodb://${MONGO_HOST}/${DB_NAME}?replicaSet=rs1" /mongo-cleanup.js
 
